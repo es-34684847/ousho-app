@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>王将 会計シミュレーター</title>
+
+<style>
+
+body{
+font-family:sans-serif;
+background:#d9cfc7;
+margin:0;
+}
+
+.header{
+background:#d82222;
+color:white;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+padding:15px;
+}
+
+.container{
+max-width:420px;
+margin:auto;
+padding:15px;
+}
+
+.card{
+background:white;
+border-radius:15px;
+padding:15px;
+margin-bottom:15px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+h2{
+font-size:18px;
+margin-top:0;
+}
+
+.row{
+display:flex;
+gap:10px;
+}
+
+select{
+flex:1;
+padding:10px;
+font-size:15px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px 12px;
+border-radius:10px;
+border:1px solid #ccc;
+background:white;
+margin:4px;
+font-size:14px;
+}
+
+button.active{
+background:#d82222;
+color:white;
+border:none;
+}
+
+.total{
+font-size:26px;
+text-align:right;
+}
+
+.bigTotal{
+background:#d82222;
+color:white;
+text-align:center;
+font-size:38px;
+padding:18px;
+border-radius:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+王将会計シミュレーター
+</div>
+
+<div class="container">
+
+<div class="card">
+<h2>注文1</h2>
+<div class="row">
+<select id="genre1"></select>
+<select id="menu1"></select>
+</div>
+</div>
+
+<div class="card">
+<h2>注文2</h2>
+<div class="row">
+<select id="genre2"></select>
+<select id="menu2"></select>
+</div>
+</div>
+
+<div class="card">
+<h2>注文3</h2>
+<div class="row">
+<select id="genre3"></select>
+<select id="menu3"></select>
+</div>
+</div>
+
+<div class="card">
+<h2>小計</h2>
+<div class="total" id="subtotal">¥0</div>
+</div>
+
+<div class="card">
+<h2>クーポン</h2>
+
+<button onclick="setCoupon(0,this)">なし</button>
+<button onclick="setCoupon(100,this)">100円引き</button>
+<button onclick="setCoupon(200,this)">200円引き</button>
+<button onclick="setCoupon(250,this)">250円引き</button>
+
+</div>
+
+<div class="card">
+<h2>餃子倶楽部割引</h2>
+
+<button onclick="setDiscount(0,this)">なし</button>
+<button onclick="setDiscount(5,this)">5%OFF</button>
+<button onclick="setDiscount(7,this)">7%OFF</button>
+<button onclick="setDiscount(10,this)">10%OFF</button>
+
+</div>
+
+<div class="bigTotal" id="total">
+¥0
+</div>
+
+</div>
+
+<script>
+
+let menus=[]
+let coupon=0
+let discount=0
+
+async function loadCSV(){
+
+const res=await fetch("menu.csv")
+const text=await res.text()
+
+const rows=text.trim().split(/\r?\n/)
+
+rows.slice(1).forEach(r=>{
+
+const c=r.split(",")
+
+if(c.length<3)return
+
+menus.push({
+genre:c[0],
+name:c[1],
+price:Number(c[2])
+})
+
+})
+
+setupGenre()
+
+}
+
+function setupGenre(){
+
+const genres=[...new Set(menus.map(m=>m.genre))]
+
+for(let i=1;i<=3;i++){
+
+const genreSel=document.getElementById("genre"+i)
+const menuSel=document.getElementById("menu"+i)
+
+genreSel.innerHTML='<option value="">ジャンル</option>'
+menuSel.innerHTML='<option value="">メニュー</option>'
+
+genres.forEach(g=>{
+const opt=document.createElement("option")
+opt.value=g
+opt.text=g
+genreSel.appendChild(opt)
+})
+
+genreSel.addEventListener("change",()=>{
+
+menuSel.innerHTML='<option value="">メニュー</option>'
+
+menus
+.filter(m=>m.genre===genreSel.value)
+.forEach(m=>{
+
+const opt=document.createElement("option")
+opt.value=m.price
+opt.text=m.name+" ¥"+m.price
+menuSel.appendChild(opt)
+
+})
+
+})
+
+menuSel.addEventListener("change",calc)
+
+}
+
+}
+
+function setActive(btn){
+
+const buttons=btn.parentElement.querySelectorAll("button")
+
+buttons.forEach(b=>b.classList.remove("active"))
+
+btn.classList.add("active")
+
+}
+
+function setCoupon(v,btn){
+
+coupon=v
+setActive(btn)
+calc()
+
+}
+
+function setDiscount(v,btn){
+
+discount=v
+setActive(btn)
+calc()
+
+}
+
+function calc(){
+
+let totalPrice=0
+
+for(let i=1;i<=3;i++){
+
+const v=document.getElementById("menu"+i).value
+
+if(v){
+totalPrice+=Number(v)
+}
+
+}
+
+const tax=Math.round(totalPrice*1.1)
+
+let afterCoupon=tax-coupon
+if(afterCoupon<0)afterCoupon=0
+
+const result=Math.round(afterCoupon*(1-discount/100))
+
+document.getElementById("subtotal").innerText="¥"+tax
+document.getElementById("total").innerText="¥"+result
+
+}
+
+loadCSV()
+
+</script>
+
+</body>
+</html>
