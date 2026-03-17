@@ -106,6 +106,62 @@ padding:15px;
 font-size:20px;
 }
 
+/* モーダル */
+
+#modal{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+z-index:999;
+}
+
+.modalBg{
+position:absolute;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+}
+
+.modalBox{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:85%;
+max-width:320px;
+background:#222;
+color:white;
+border-radius:16px;
+padding:16px;
+text-align:center;
+}
+
+.modalTitle{
+font-size:20px;
+margin-bottom:10px;
+}
+
+.modalItem{
+background:white;
+color:black;
+padding:12px;
+margin:8px 0;
+border-radius:10px;
+font-weight:bold;
+}
+
+.modalClose{
+margin-top:10px;
+width:100%;
+padding:10px;
+background:#555;
+color:white;
+border:none;
+border-radius:10px;
+}
+  
 </style>
 </head>
 
@@ -310,21 +366,70 @@ function suggest(diff){
 
 let list=menus
 .map(m=>{
-return {name:m.name,price:m.price,diff:Math.abs(m.price-diff)}
+return {
+name:m.name,
+price:m.price,
+diff:Math.abs(m.price-diff)
+}
 })
 .sort((a,b)=>a.diff-b.diff)
 .slice(0,3)
 
-alert(
-"おすすめ\n"+
-list.map(l=>`${l.name} ¥${l.price}`).join("\n")
-)
+const box=document.getElementById("modalList")
+box.innerHTML=""
+
+list.forEach(item=>{
+
+const div=document.createElement("div")
+div.className="modalItem"
+div.innerText=`${item.name} ¥${item.price}`
+
+div.onclick=()=>{
+addFromModal(item)
+}
+
+box.appendChild(div)
+
+})
+
+document.getElementById("modal").style.display="block"
+
+}
+
+function closeModal(){
+document.getElementById("modal").style.display="none"
+}
+
+function addFromModal(item){
+
+addOrder()
+
+const i=orderCount
+
+document.getElementById("menu"+i).innerHTML=
+`<option value="${item.price}">${item.name} ¥${item.price}</option>`
+
+calc()
+
+closeModal()
+
+}
 
 }
 
 loadCSV()
 
 </script>
+<div id="modal" style="display:none;">
+  <div class="modalBg" onclick="closeModal()"></div>
 
+  <div class="modalBox">
+    <div class="modalTitle">おすすめ</div>
+
+    <div id="modalList"></div>
+
+    <button class="modalClose" onclick="closeModal()">閉じる</button>
+  </div>
+</div>
 </body>
 </html>
