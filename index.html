@@ -23,6 +23,7 @@ background:#d82222;
 color:white;
 text-align:center;
 padding:14px;
+font-weight:bold;
 }
 
 .container{
@@ -68,14 +69,18 @@ color:white;
 border:none;
 }
 
+/* ＋追加（コンパクト） */
 .addBtn{
 width:100%;
-padding:10px;
-border:2px dashed #aaa;
-border-radius:10px;
-background:white;
+padding:8px;
+border:1px dashed #aaa;
+border-radius:8px;
+background:#fafafa;
+font-size:14px;
+margin-bottom:12px;
 }
 
+/* 刻み */
 .nextPay{
 position:fixed;
 bottom:65px;
@@ -87,6 +92,7 @@ text-align:center;
 font-size:14px;
 }
 
+/* 合計 */
 .totalBar{
 position:fixed;
 bottom:0;
@@ -111,27 +117,23 @@ font-size:20px;
 
 <div class="container" id="orders"></div>
 
-<button class="addBtn" onclick="addOrder()">＋ メニュー追加</button>
+<div class="container">
 
 <div class="card">
-
 <div>クーポン</div>
-
 <button onclick="setCoupon(0,this)">なし</button>
 <button onclick="setCoupon(100,this)">100円引き</button>
 <button onclick="setCoupon(200,this)">200円引き</button>
 <button onclick="setCoupon(250,this)">250円引き</button>
-
 </div>
 
 <div class="card">
-
 <div>餃子倶楽部割引</div>
-
 <button onclick="setDiscount(0,this)">なし</button>
 <button onclick="setDiscount(5,this)">5%</button>
 <button onclick="setDiscount(7,this)">7%</button>
 <button onclick="setDiscount(10,this)">10%</button>
+</div>
 
 </div>
 
@@ -192,9 +194,28 @@ div.innerHTML=`
 
 `
 
-document.getElementById("orders").appendChild(div)
+const container=document.getElementById("orders")
+container.appendChild(div)
 
 setup(orderCount)
+
+// ＋ボタン再配置
+renderAddButton()
+
+}
+
+function renderAddButton(){
+
+const old=document.getElementById("addBtn")
+if(old) old.remove()
+
+const btn=document.createElement("button")
+btn.id="addBtn"
+btn.className="addBtn"
+btn.innerText="＋ メニューを追加"
+btn.onclick=addOrder
+
+document.getElementById("orders").appendChild(btn)
 
 }
 
@@ -272,7 +293,7 @@ total+=Number(el.value)
 const tax=Math.round(total*1.1)
 
 let result=tax-coupon
-if(result<0)result=0
+if(result<0) result=0
 
 result=Math.round(result*(1-discount/100))
 
@@ -310,7 +331,8 @@ return {name:m.name,price:m.price,diff:Math.abs(m.price-diff)}
 .slice(0,3)
 
 alert(
-list.map(l=>`${l.name} ¥${l.price}`).join("\n")
+"おすすめ\\n"+
+list.map(l=>`${l.name} ¥${l.price}`).join("\\n")
 )
 
 }
