@@ -1,114 +1,101 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>王将会計シミュレーター</title>
+<title>王将会計シュミレーター</title>
 
 <link rel="icon" href="icon.ico">
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
-
 body{
-margin:0;
 font-family:sans-serif;
-background:#d9cfc7;
+background:#d8c9bd;
+margin:0;
+padding-bottom:120px;
 }
 
-.header{
-background:#d82222;
+header{
+background:#d32f2f;
 color:white;
 text-align:center;
 padding:14px;
+font-size:20px;
 font-weight:bold;
 }
 
 .container{
-max-width:420px;
-margin:auto;
-padding:15px;
-padding-bottom:160px;
+padding:10px;
 }
 
 .card{
 background:white;
-border-radius:12px;
-padding:14px;
-margin-bottom:12px;
+border-radius:14px;
+padding:12px;
+margin-bottom:10px;
 }
 
-.orderHeader{
+.title{
+font-size:16px;
+margin-bottom:6px;
+}
+
+.row{
 display:flex;
-gap:10px;
-align-items:center;
-margin-bottom:8px;
+gap:6px;
 }
 
 select{
 width:100%;
-padding:10px;
-font-size:16px;
-border-radius:10px;
-border:1px solid #ccc;
-}
-
-button{
-padding:8px 12px;
-margin:4px;
+padding:8px;
 border-radius:8px;
-border:1px solid #ccc;
-background:white;
 }
 
-button.active{
-background:#d82222;
-color:white;
-border:none;
-}
-
-/* ＋追加 */
 .addBtn{
-width:100%;
-padding:8px;
-border:1px dashed #aaa;
-border-radius:8px;
-background:#fafafa;
-font-size:14px;
-margin-bottom:12px;
-}
-
-/* 刻み */
-.nextPay{
-position:fixed;
-bottom:65px;
-left:0;
-right:0;
-background:#f4f4f4;
-padding:8px;
 text-align:center;
-font-size:14px;
+font-size:22px;
+padding:8px;
+background:#eee;
+border-radius:10px;
 }
 
-/* 合計 */
-.totalBar{
+.totalBox{
 position:fixed;
 bottom:0;
 left:0;
 right:0;
-background:#d82222;
+background:#d32f2f;
 color:white;
-display:flex;
-justify-content:space-between;
-padding:15px;
-font-size:20px;
+text-align:center;
+padding:10px;
+}
+
+.total{
+font-size:24px;
+font-weight:bold;
+}
+
+.subText{
+font-size:14px;
+margin-top:5px;
+}
+
+button{
+padding:8px;
+border:none;
+border-radius:8px;
+}
+
+.coupon button.active,
+.member button.active{
+background:#d32f2f;
+color:white;
 }
 
 /* モーダル */
-
 #modal{
+display:none;
 position:fixed;
 top:0;
 left:0;
@@ -130,7 +117,6 @@ top:50%;
 left:50%;
 transform:translate(-50%,-50%);
 width:85%;
-max-width:320px;
 background:#222;
 color:white;
 border-radius:16px;
@@ -138,298 +124,182 @@ padding:16px;
 text-align:center;
 }
 
-.modalTitle{
-font-size:20px;
-margin-bottom:10px;
-}
-
 .modalItem{
 background:white;
 color:black;
-padding:12px;
-margin:8px 0;
-border-radius:10px;
-font-weight:bold;
-}
-
-.modalClose{
-margin-top:10px;
-width:100%;
 padding:10px;
-background:#555;
-color:white;
-border:none;
+margin:6px 0;
 border-radius:10px;
 }
-  
 </style>
 </head>
 
 <body>
 
-<div class="header">
-王将会計シミュレーター
-</div>
+<header>王将会計シュミレーター</header>
 
-<div class="container">
+<div class="container" id="orders"></div>
 
-<div id="orders"></div>
+<div class="card" id="addBtn">＋ メニュー追加</div>
 
-<button class="addBtn" onclick="addOrder()">＋ メニューを追加</button>
-
-<div class="card">
-<div>クーポン</div>
+<div class="card coupon">
+<div class="title">クーポン</div>
 <button onclick="setCoupon(0,this)">なし</button>
 <button onclick="setCoupon(100,this)">100円引き</button>
 <button onclick="setCoupon(200,this)">200円引き</button>
 <button onclick="setCoupon(250,this)">250円引き</button>
 </div>
 
-<div class="card">
-<div>餃子倶楽部割引</div>
+<div class="card member">
+<div class="title">餃子倶楽部割引</div>
 <button onclick="setDiscount(0,this)">なし</button>
 <button onclick="setDiscount(5,this)">5%</button>
 <button onclick="setDiscount(7,this)">7%</button>
 <button onclick="setDiscount(10,this)">10%</button>
 </div>
 
+<div class="totalBox">
+<div class="total" id="total">¥0</div>
+<div class="subText" id="stepText"></div>
 </div>
 
-<div class="nextPay" id="nextPay"></div>
-
-<div class="totalBar">
-<div>合計</div>
-<div id="total">¥0</div>
+<!-- モーダル -->
+<div id="modal">
+<div class="modalBg" onclick="closeModal()"></div>
+<div class="modalBox">
+<div>おすすめ</div>
+<div id="modalList"></div>
+<button onclick="closeModal()">閉じる</button>
+</div>
 </div>
 
 <script>
-
 let menus=[]
+let orders=[]
 let coupon=0
 let discount=0
-let orderCount=0
 
-async function loadCSV(){
+fetch("menu.csv")
+.then(res=>res.text())
+.then(text=>{
+const lines=text.split("\n").slice(1)
 
-const res=await fetch("menu.csv")
-const text=await res.text()
-
-const rows=text.trim().split(/\r?\n/)
-
-rows.slice(1).forEach(r=>{
-const c=r.split(",")
-if(c.length<3)return
-
-menus.push({
-genre:c[0],
-name:c[1],
-price:Number(c[2])
+menus=lines.map(l=>{
+const [genre,name,price]=l.split(",")
+return {genre,name,price:Math.floor(price*1.1)}
 })
+init()
 })
 
+function init(){
 addOrder()
 addOrder()
 addOrder()
-
 }
 
 function addOrder(){
+orders.push({price:0})
 
-orderCount++
+const i=orders.length-1
 
 const div=document.createElement("div")
 div.className="card"
 
 div.innerHTML=`
-
-<div class="orderHeader">
-注文${orderCount}
-<select id="genre${orderCount}"></select>
-</div>
-
-<div>メニュー</div>
-<select id="menu${orderCount}">
-<option value="">メニュー</option>
+<div class="title">注文${i+1}</div>
+<select onchange="selectMenu(this,${i})">
+<option value="">選択</option>
+${menus.map(m=>`<option value="${m.price}">${m.name} ¥${m.price}</option>`).join("")}
 </select>
-
 `
 
 document.getElementById("orders").appendChild(div)
-
-setup(orderCount)
-
 }
 
-function setup(i){
+document.getElementById("addBtn").onclick=addOrder
 
-const genreSel=document.getElementById("genre"+i)
-const menuSel=document.getElementById("menu"+i)
-
-const genres=[...new Set(menus.map(m=>m.genre))]
-
-genreSel.innerHTML='<option value="">ジャンル</option>'
-
-genres.forEach(g=>{
-const opt=document.createElement("option")
-opt.value=g
-opt.text=g
-genreSel.appendChild(opt)
-})
-
-genreSel.addEventListener("change",()=>{
-
-menuSel.innerHTML='<option value="">メニュー</option>'
-
-menus
-.filter(m=>m.genre===genreSel.value)
-.forEach(m=>{
-const opt=document.createElement("option")
-opt.value=m.price
-opt.text=m.name+" ¥"+m.price
-menuSel.appendChild(opt)
-})
-
+function selectMenu(el,i){
+const val=Number(el.value)||0
+orders[i].price=val
 calc()
-
-})
-
-menuSel.addEventListener("change",calc)
-
-}
-
-function setActive(btn){
-
-const buttons=btn.parentElement.querySelectorAll("button")
-buttons.forEach(b=>b.classList.remove("active"))
-btn.classList.add("active")
-
 }
 
 function setCoupon(v,btn){
 coupon=v
-setActive(btn)
+document.querySelectorAll(".coupon button").forEach(b=>b.classList.remove("active"))
+btn.classList.add("active")
 calc()
 }
 
 function setDiscount(v,btn){
 discount=v
-setActive(btn)
+document.querySelectorAll(".member button").forEach(b=>b.classList.remove("active"))
+btn.classList.add("active")
 calc()
 }
 
 function calc(){
 
-let total=0
+let sum=orders.reduce((a,b)=>a+b.price,0)
 
-for(let i=1;i<=orderCount;i++){
+sum-=coupon
+sum=sum*(1-discount/100)
 
-const el=document.getElementById("menu"+i)
+sum=Math.floor(sum)
 
-if(el && el.value){
-total+=Number(el.value)
-}
+document.getElementById("total").innerText="¥"+sum
 
-}
-
-const tax=Math.round(total*1.1)
-
-let result=tax-coupon
-if(result<0) result=0
-
-result=Math.round(result*(1-discount/100))
-
-document.getElementById("total").innerText="¥"+result
-
-// 刻み（税込後）
-
-const next500=Math.ceil(result/500)*500
+// 刻み
+let targets=[1000,1500,2000]
 
 let text=""
 
-for(let i=0;i<2;i++){
-
-const target=next500+(i*500)
-const diff=target-result
-
-text+=`
-${target}円まであと ¥${diff}
-<button onclick="suggest(${diff})">＋</button><br>
-`
-
+targets.forEach(t=>{
+if(sum<t){
+let diff=t-sum
+text+=`${t}円まであと ¥${diff} `
++`<button onclick="suggest(${diff})">＋</button><br>`
 }
+})
 
-document.getElementById("nextPay").innerHTML=text
-
+document.getElementById("stepText").innerHTML=text
 }
 
 function suggest(diff){
 
 let list=menus
-.map(m=>{
-return {
-name:m.name,
-price:m.price,
-diff:Math.abs(m.price-diff)
-}
-})
-.sort((a,b)=>a.diff-b.diff)
+.map(m=>({
+...m,
+d:Math.abs(m.price-diff)
+}))
+.sort((a,b)=>a.d-b.d)
 .slice(0,3)
 
 const box=document.getElementById("modalList")
 box.innerHTML=""
 
-list.forEach(item=>{
-
+list.forEach(m=>{
 const div=document.createElement("div")
 div.className="modalItem"
-div.innerText=`${item.name} ¥${item.price}`
+div.innerText=`${m.name} ¥${m.price}`
 
 div.onclick=()=>{
-addFromModal(item)
+addOrder()
+orders[orders.length-1].price=m.price
+calc()
+closeModal()
 }
 
 box.appendChild(div)
-
 })
 
 document.getElementById("modal").style.display="block"
-
 }
 
 function closeModal(){
 document.getElementById("modal").style.display="none"
 }
-
-function addFromModal(item){
-
-addOrder()
-
-const i=orderCount
-
-document.getElementById("menu"+i).innerHTML=
-`<option value="${item.price}">${item.name} ¥${item.price}</option>`
-
-calc()
-
-closeModal()
-
-}
-
-}
-
-loadCSV()
-
 </script>
-<div id="modal" style="display:none;">
-  <div class="modalBg" onclick="closeModal()"></div>
 
-  <div class="modalBox">
-    <div class="modalTitle">おすすめ</div>
-
-    <div id="modalList"></div>
-
-    <button class="modalClose" onclick="closeModal()">閉じる</button>
-  </div>
-</div>
 </body>
 </html>
