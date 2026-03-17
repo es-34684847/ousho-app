@@ -5,10 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="icon" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" href="icon.ico">
-  
 <title>王将会計シミュレーター</title>
 
 <style>
@@ -26,29 +22,18 @@ text-align:center;
 padding:14px;
 }
 
-.headerTitle{
-font-size:20px;
-font-weight:bold;
-}
-
-.headerSub{
-font-size:12px;
-opacity:0.9;
-}
-
 .container{
 max-width:420px;
 margin:auto;
 padding:15px;
-padding-bottom:140px;
+padding-bottom:160px;
 }
 
 .card{
 background:white;
 border-radius:12px;
 padding:14px;
-margin-bottom:14px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
+margin-bottom:12px;
 }
 
 .orderHeader{
@@ -58,26 +43,17 @@ align-items:center;
 margin-bottom:8px;
 }
 
-.orderTitle{
-font-weight:bold;
-}
-
-.orderHeader select{
-flex:1;
-}
-
-.menuLabel{
-font-size:13px;
-color:#555;
-margin-bottom:4px;
-}
-
 select{
 width:100%;
 padding:10px;
 font-size:16px;
 border-radius:10px;
 border:1px solid #ccc;
+}
+
+.menuLabel{
+font-size:13px;
+margin-bottom:4px;
 }
 
 button{
@@ -94,69 +70,42 @@ color:white;
 border:none;
 }
 
-/* 合計バー */
+/* ＋追加 */
 
-.totalBar{
-
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-
-background:#d82222;
-color:white;
-
-display:flex;
-justify-content:space-between;
-align-items:center;
-
-padding:15px;
-
-font-size:20px;
-font-weight:bold;
-
-box-shadow:0 -3px 10px rgba(0,0,0,0.2);
-
+.addBtn{
+width:100%;
+padding:10px;
+background:#fff;
+border:2px dashed #aaa;
+border-radius:10px;
 }
 
-.totalPrice{
-font-size:28px;
-}
-
-/* 500円刻み */
+/* 刻み */
 
 .nextPay{
-
 position:fixed;
 bottom:65px;
 left:0;
 right:0;
-
 background:#f4f4f4;
-
-text-align:center;
 padding:8px;
-
+text-align:center;
 font-size:14px;
-
 }
 
-.toggleBtn{
+/* 合計 */
 
+.totalBar{
 position:fixed;
-bottom:110px;
-right:10px;
-
+bottom:0;
+left:0;
+right:0;
 background:#d82222;
 color:white;
-
-border:none;
-border-radius:20px;
-
-padding:8px 12px;
-
-font-size:12px;
-
+display:flex;
+justify-content:space-between;
+padding:15px;
+font-size:20px;
 }
 
 </style>
@@ -166,99 +115,18 @@ font-size:12px;
 <body>
 
 <div class="header">
-
-<div class="headerTitle">
 王将会計シミュレーター
 </div>
 
-<div class="headerSub">
-餃子の王将 注文計算ツール
-</div>
+<div class="container" id="orders"></div>
 
-</div>
-
-<div class="container">
-
-<div class="card">
-
-<div class="orderHeader">
-<div class="orderTitle">注文1</div>
-<select id="genre1"></select>
-</div>
-
-<div class="menuLabel">メニュー</div>
-<select id="menu1"></select>
-
-</div>
-
-<div class="card">
-
-<div class="orderHeader">
-<div class="orderTitle">注文2</div>
-<select id="genre2"></select>
-</div>
-
-<div class="menuLabel">メニュー</div>
-<select id="menu2"></select>
-
-</div>
-
-<div class="card">
-
-<div class="orderHeader">
-<div class="orderTitle">注文3</div>
-<select id="genre3"></select>
-</div>
-
-<div class="menuLabel">メニュー</div>
-<select id="menu3"></select>
-
-</div>
-
-<div class="card">
-
-<div style="font-weight:bold;margin-bottom:6px;">
-クーポン
-</div>
-
-<button onclick="setCoupon(0,this)">なし</button>
-<button onclick="setCoupon(100,this)">100円引き</button>
-<button onclick="setCoupon(200,this)">200円引き</button>
-<button onclick="setCoupon(250,this)">250円引き</button>
-
-</div>
-
-<div class="card">
-
-<div style="font-weight:bold;margin-bottom:6px;">
-餃子倶楽部割引
-</div>
-
-<button onclick="setDiscount(0,this)">なし</button>
-<button onclick="setDiscount(5,this)">5%</button>
-<button onclick="setDiscount(7,this)">7%</button>
-<button onclick="setDiscount(10,this)">10%</button>
-
-</div>
-
-</div>
-
-<button class="toggleBtn" onclick="toggleNext()">
-刻み表示
-</button>
+<button class="addBtn" onclick="addOrder()">＋ メニュー追加</button>
 
 <div class="nextPay" id="nextPay"></div>
 
 <div class="totalBar">
-
-<div>
-合計
-</div>
-
-<div id="total" class="totalPrice">
-¥0
-</div>
-
+<div>合計</div>
+<div id="total">¥0</div>
 </div>
 
 <script>
@@ -266,7 +134,7 @@ font-size:12px;
 let menus=[]
 let coupon=0
 let discount=0
-let showNext=true
+let orderCount=0
 
 async function loadCSV(){
 
@@ -276,44 +144,61 @@ const text=await res.text()
 const rows=text.trim().split(/\r?\n/)
 
 rows.slice(1).forEach(r=>{
-
 const c=r.split(",")
-
-if(c.length<3)return
-
 menus.push({
 genre:c[0],
 name:c[1],
 price:Number(c[2])
 })
-
 })
 
-setupGenre()
+addOrder()
+addOrder()
+addOrder()
 
 }
 
-function setupGenre(){
+function addOrder(){
 
-const genres=[...new Set(menus.map(m=>m.genre))]
+orderCount++
 
-for(let i=1;i<=3;i++){
+const div=document.createElement("div")
+div.className="card"
+
+div.innerHTML=`
+
+<div class="orderHeader">
+注文${orderCount}
+<select id="genre${orderCount}"></select>
+</div>
+
+<div class="menuLabel">メニュー</div>
+<select id="menu${orderCount}">
+<option value="">メニュー</option>
+</select>
+
+`
+
+document.getElementById("orders").appendChild(div)
+
+setup(orderCount)
+
+}
+
+function setup(i){
 
 const genreSel=document.getElementById("genre"+i)
 const menuSel=document.getElementById("menu"+i)
 
+const genres=[...new Set(menus.map(m=>m.genre))]
+
 genreSel.innerHTML='<option value="">ジャンル</option>'
-menuSel.innerHTML='<option value="">メニュー</option>'
 
 genres.forEach(g=>{
-
 const opt=document.createElement("option")
-
 opt.value=g
 opt.text=g
-
 genreSel.appendChild(opt)
-
 })
 
 genreSel.addEventListener("change",()=>{
@@ -323,15 +208,13 @@ menuSel.innerHTML='<option value="">メニュー</option>'
 menus
 .filter(m=>m.genre===genreSel.value)
 .forEach(m=>{
-
 const opt=document.createElement("option")
-
 opt.value=m.price
 opt.text=m.name+" ¥"+m.price
-
 menuSel.appendChild(opt)
-
 })
+
+calc()
 
 })
 
@@ -339,88 +222,71 @@ menuSel.addEventListener("change",calc)
 
 }
 
-}
-
-function setActive(btn){
-
-const buttons=btn.parentElement.querySelectorAll("button")
-
-buttons.forEach(b=>b.classList.remove("active"))
-
-btn.classList.add("active")
-
-}
-
-function setCoupon(v,btn){
-
-coupon=v
-
-setActive(btn)
-
-calc()
-
-}
-
-function setDiscount(v,btn){
-
-discount=v
-
-setActive(btn)
-
-calc()
-
-}
-
-function toggleNext(){
-
-showNext=!showNext
-
-document.getElementById("nextPay").style.display=
-showNext ? "block" : "none"
-
-}
-
 function calc(){
 
-let totalPrice=0
+let total=0
 
-for(let i=1;i<=3;i++){
+for(let i=1;i<=orderCount;i++){
 
-const v=document.getElementById("menu"+i).value
-
-if(v){
-
-totalPrice+=Number(v)
-
+const el=document.getElementById("menu"+i)
+if(el && el.value){
+total+=Number(el.value)
 }
 
 }
 
-const tax=Math.round(totalPrice*1.1)
+const tax=Math.round(total*1.1)
+document.getElementById("total").innerText="¥"+tax
 
-let afterCoupon=tax-coupon
+// 刻み（税込後）
 
-if(afterCoupon<0)afterCoupon=0
-
-const result=Math.round(afterCoupon*(1-discount/100))
-
-document.getElementById("total").innerText="¥"+result
-
-const next500=Math.ceil(result/500)*500
+const next500=Math.ceil(tax/500)*500
 
 let text=""
 
 for(let i=0;i<2;i++){
 
 const target=next500+(i*500)
+const diff=target-tax
 
-const diff=target-result
-
-text+=target+"円まであと ¥"+diff+"<br>"
+text+=`
+${target}円まであと ¥${diff}
+<button onclick="autoAdd(${diff})">＋</button>
+<br>
+`
 
 }
 
 document.getElementById("nextPay").innerHTML=text
+
+}
+
+function autoAdd(diff){
+
+// 一番近い商品探す
+let best=null
+let min=9999
+
+menus.forEach(m=>{
+const d=Math.abs(m.price-diff)
+if(d<min){
+min=d
+best=m
+}
+})
+
+if(best){
+
+addOrder()
+
+const i=orderCount
+
+document.getElementById("menu"+i).innerHTML=
+`<option value="${best.price}">${best.name} ¥${best.price}</option>`
+
+calc()
+
+}
 
 }
 
