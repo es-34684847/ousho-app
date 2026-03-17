@@ -10,149 +10,23 @@
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
-
-body{
-font-family:sans-serif;
-background:#d8c9bd;
-margin:0;
-padding-bottom:140px;
-}
-
-header{
-background:#d32f2f;
-color:white;
-text-align:center;
-padding:14px;
-font-size:20px;
-font-weight:bold;
-}
-
-.container{
-padding:10px;
-}
-
-.card{
-background:white;
-border-radius:14px;
-padding:12px;
-margin-bottom:10px;
-}
-
-.title{
-font-size:15px;
-margin-bottom:6px;
-}
-
-.row{
-display:flex;
-gap:6px;
-}
-
-select{
-width:100%;
-padding:8px;
-border-radius:8px;
-}
-
-.addBtn{
-text-align:center;
-font-size:16px;
-padding:10px;
-background:#eee;
-border-radius:10px;
-}
-
-button{
-padding:8px;
-border:none;
-border-radius:8px;
-}
-
-.coupon button.active,
-.member button.active{
-background:#d32f2f;
-color:white;
-}
-
-/* 刻み表示 */
-.stepBox{
-position:fixed;
-bottom:70px;
-left:0;
-right:0;
-background:#f4f4f4;
-text-align:center;
-padding:6px;
-font-size:14px;
-}
-
-/* 合計 */
-.totalBox{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#d32f2f;
-color:white;
-text-align:center;
-padding:10px;
-}
-
-.total{
-font-size:24px;
-font-weight:bold;
-}
-
-/* モーダル */
-#modal{
-display:none;
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-z-index:999;
-}
-
-.modalBg{
-position:absolute;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.6);
-}
-
-.modalBox{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-width:85%;
-background:#222;
-color:white;
-border-radius:16px;
-padding:16px;
-text-align:center;
-}
-
-.modalItem{
-background:white;
-color:black;
-padding:10px;
-margin:6px 0;
-border-radius:10px;
-}
-
-.toggle{
-position:fixed;
-bottom:120px;
-right:10px;
-background:#d32f2f;
-color:white;
-padding:6px 10px;
-border-radius:20px;
-font-size:12px;
-}
-
+body{font-family:sans-serif;background:#d8c9bd;margin:0;padding-bottom:140px;}
+header{background:#d32f2f;color:white;text-align:center;padding:14px;font-size:20px;font-weight:bold;}
+.container{padding:10px;}
+.card{background:white;border-radius:14px;padding:12px;margin-bottom:10px;}
+.title{font-size:15px;margin-bottom:6px;}
+select{width:100%;padding:8px;border-radius:8px;}
+.addBtn{text-align:center;font-size:16px;padding:10px;background:#eee;border-radius:10px;}
+button{padding:8px;border:none;border-radius:8px;}
+.coupon button.active,.member button.active{background:#d32f2f;color:white;}
+.stepBox{position:fixed;bottom:70px;left:0;right:0;background:#f4f4f4;text-align:center;padding:6px;font-size:14px;}
+.totalBox{position:fixed;bottom:0;left:0;right:0;background:#d32f2f;color:white;text-align:center;padding:10px;}
+.total{font-size:24px;font-weight:bold;}
+#modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;}
+.modalBg{position:absolute;width:100%;height:100%;background:rgba(0,0,0,0.6);}
+.modalBox{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:85%;background:#222;color:white;border-radius:16px;padding:16px;text-align:center;}
+.modalItem{background:white;color:black;padding:10px;margin:6px 0;border-radius:10px;}
+.toggle{position:fixed;bottom:120px;right:10px;background:#d32f2f;color:white;padding:6px 10px;border-radius:20px;font-size:12px;}
 </style>
 </head>
 
@@ -229,9 +103,7 @@ addOrder()
 }
 
 function addOrder(){
-
 orders.push({price:0,genre:""})
-
 const i=orders.length-1
 
 const div=document.createElement("div")
@@ -251,21 +123,17 @@ ${[...new Set(menus.map(m=>m.genre))].map(g=>`<option>${g}</option>`).join("")}
 `
 
 document.getElementById("orders").appendChild(div)
-
 }
 
 function changeGenre(el,i){
-
 const menuSel=document.getElementById("menu"+i)
-
 menuSel.innerHTML=`<option value="">メニュー</option>`
 
 menus
 .filter(m=>m.genre===el.value)
 .forEach(m=>{
-menuSel.innerHTML+=`<option value="${m.price}">${m.name} ¥${Math.floor(m.price*1.1)}</option>`
+menuSel.innerHTML+=`<option value="${m.price}">${m.name} ¥${m.price}</option>`
 })
-
 }
 
 function selectMenu(el,i){
@@ -289,25 +157,28 @@ calc()
 
 function calc(){
 
-let sum=orders.reduce((a,b)=>a+b.price,0)
+// ① 税抜き合計
+let base=orders.reduce((a,b)=>a+b.price,0)
 
-let tax=Math.floor(sum*1.1)
+// ② クーポン
+base-=coupon
+if(base<0)base=0
 
-tax-=coupon
-if(tax<0)tax=0
+// ③ 消費税
+let tax=Math.floor(base*1.1)
 
+// ④ 餃子倶楽部
 tax=Math.floor(tax*(1-discount/100))
 
 document.getElementById("total").innerText="¥"+tax
 
-// 刻み（2つだけ）
+// 刻み
 if(!showStep){
 document.getElementById("stepBox").innerHTML=""
 return
 }
 
 let next=Math.ceil(tax/500)*500
-
 let text=""
 
 for(let i=0;i<2;i++){
@@ -317,7 +188,6 @@ text+=`${t}円まであと ¥${diff} <button onclick="suggest(${diff})">＋</but
 }
 
 document.getElementById("stepBox").innerHTML=text
-
 }
 
 function toggleStep(){
@@ -328,11 +198,14 @@ calc()
 function suggest(diff){
 
 let list=menus
-.map(m=>({
+.map(m=>{
+let taxed=Math.floor((m.price)*1.1)
+return {
 ...m,
-price:Math.floor(m.price*1.1),
-d:Math.abs(Math.floor(m.price*1.1)-diff)
-}))
+taxed,
+d:Math.abs(taxed-diff)
+}
+})
 .sort((a,b)=>a.d-b.d)
 .slice(0,3)
 
@@ -342,11 +215,11 @@ box.innerHTML=""
 list.forEach(m=>{
 const div=document.createElement("div")
 div.className="modalItem"
-div.innerText=`${m.name} ¥${m.price}`
+div.innerText=`${m.name} ¥${m.taxed}`
 
 div.onclick=()=>{
 addOrder()
-orders[orders.length-1].price=Math.floor(m.price/1.1)
+orders[orders.length-1].price=m.price
 calc()
 closeModal()
 }
@@ -355,7 +228,6 @@ box.appendChild(div)
 })
 
 document.getElementById("modal").style.display="block"
-
 }
 
 function closeModal(){
