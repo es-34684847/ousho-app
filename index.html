@@ -3,17 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>王将会計シュミレーター</title>
+
+<title>王将会計シミュレーター</title>
 
 <link rel="icon" href="icon.ico">
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
+
 body{
 font-family:sans-serif;
 background:#d8c9bd;
 margin:0;
-padding-bottom:120px;
+padding-bottom:140px;
 }
 
 header{
@@ -37,7 +39,7 @@ margin-bottom:10px;
 }
 
 .title{
-font-size:16px;
+font-size:15px;
 margin-bottom:6px;
 }
 
@@ -54,12 +56,37 @@ border-radius:8px;
 
 .addBtn{
 text-align:center;
-font-size:22px;
-padding:8px;
+font-size:16px;
+padding:10px;
 background:#eee;
 border-radius:10px;
 }
 
+button{
+padding:8px;
+border:none;
+border-radius:8px;
+}
+
+.coupon button.active,
+.member button.active{
+background:#d32f2f;
+color:white;
+}
+
+/* 刻み表示 */
+.stepBox{
+position:fixed;
+bottom:70px;
+left:0;
+right:0;
+background:#f4f4f4;
+text-align:center;
+padding:6px;
+font-size:14px;
+}
+
+/* 合計 */
 .totalBox{
 position:fixed;
 bottom:0;
@@ -74,23 +101,6 @@ padding:10px;
 .total{
 font-size:24px;
 font-weight:bold;
-}
-
-.subText{
-font-size:14px;
-margin-top:5px;
-}
-
-button{
-padding:8px;
-border:none;
-border-radius:8px;
-}
-
-.coupon button.active,
-.member button.active{
-background:#d32f2f;
-color:white;
 }
 
 /* モーダル */
@@ -131,16 +141,30 @@ padding:10px;
 margin:6px 0;
 border-radius:10px;
 }
+
+.toggle{
+position:fixed;
+bottom:120px;
+right:10px;
+background:#d32f2f;
+color:white;
+padding:6px 10px;
+border-radius:20px;
+font-size:12px;
+}
+
 </style>
 </head>
 
 <body>
 
-<header>王将会計シュミレーター</header>
+<header>王将会計シミュレーター</header>
 
 <div class="container" id="orders"></div>
 
-<div class="card" id="addBtn">＋ メニュー追加</div>
+<div class="container">
+
+<div class="addBtn" onclick="addOrder()">＋ メニュー追加</div>
 
 <div class="card coupon">
 <div class="title">クーポン</div>
@@ -158,9 +182,13 @@ border-radius:10px;
 <button onclick="setDiscount(10,this)">10%</button>
 </div>
 
+</div>
+
+<div class="stepBox" id="stepBox"></div>
+<div class="toggle" onclick="toggleStep()">刻み</div>
+
 <div class="totalBox">
 <div class="total" id="total">¥0</div>
-<div class="subText" id="stepText"></div>
 </div>
 
 <!-- モーダル -->
@@ -174,10 +202,12 @@ border-radius:10px;
 </div>
 
 <script>
+
 let menus=[]
 let orders=[]
 let coupon=0
 let discount=0
+let showStep=true
 
 fetch("menu.csv")
 .then(res=>res.text())
@@ -186,8 +216,9 @@ const lines=text.split("\n").slice(1)
 
 menus=lines.map(l=>{
 const [genre,name,price]=l.split(",")
-return {genre,name,price:Math.floor(price*1.1)}
+return {genre,name,price:Number(price)}
 })
+
 init()
 })
 
@@ -198,7 +229,8 @@ addOrder()
 }
 
 function addOrder(){
-orders.push({price:0})
+
+orders.push({price:0,genre:""})
 
 const i=orders.length-1
 
@@ -207,20 +239,37 @@ div.className="card"
 
 div.innerHTML=`
 <div class="title">注文${i+1}</div>
-<select onchange="selectMenu(this,${i})">
-<option value="">選択</option>
-${menus.map(m=>`<option value="${m.price}">${m.name} ¥${m.price}</option>`).join("")}
+
+<select onchange="changeGenre(this,${i})">
+<option value="">ジャンル</option>
+${[...new Set(menus.map(m=>m.genre))].map(g=>`<option>${g}</option>`).join("")}
+</select>
+
+<select id="menu${i}" onchange="selectMenu(this,${i})">
+<option value="">メニュー</option>
 </select>
 `
 
 document.getElementById("orders").appendChild(div)
+
 }
 
-document.getElementById("addBtn").onclick=addOrder
+function changeGenre(el,i){
+
+const menuSel=document.getElementById("menu"+i)
+
+menuSel.innerHTML=`<option value="">メニュー</option>`
+
+menus
+.filter(m=>m.genre===el.value)
+.forEach(m=>{
+menuSel.innerHTML+=`<option value="${m.price}">${m.name} ¥${Math.floor(m.price*1.1)}</option>`
+})
+
+}
 
 function selectMenu(el,i){
-const val=Number(el.value)||0
-orders[i].price=val
+orders[i].price=Number(el.value)||0
 calc()
 }
 
@@ -242,27 +291,38 @@ function calc(){
 
 let sum=orders.reduce((a,b)=>a+b.price,0)
 
-sum-=coupon
-sum=sum*(1-discount/100)
+let tax=Math.floor(sum*1.1)
 
-sum=Math.floor(sum)
+tax-=coupon
+if(tax<0)tax=0
 
-document.getElementById("total").innerText="¥"+sum
+tax=Math.floor(tax*(1-discount/100))
 
-// 刻み
-let targets=[1000,1500,2000]
+document.getElementById("total").innerText="¥"+tax
+
+// 刻み（2つだけ）
+if(!showStep){
+document.getElementById("stepBox").innerHTML=""
+return
+}
+
+let next=Math.ceil(tax/500)*500
 
 let text=""
 
-targets.forEach(t=>{
-if(sum<t){
-let diff=t-sum
-text+=`${t}円まであと ¥${diff} `
-+`<button onclick="suggest(${diff})">＋</button><br>`
+for(let i=0;i<2;i++){
+let t=next+(i*500)
+let diff=t-tax
+text+=`${t}円まであと ¥${diff} <button onclick="suggest(${diff})">＋</button><br>`
 }
-})
 
-document.getElementById("stepText").innerHTML=text
+document.getElementById("stepBox").innerHTML=text
+
+}
+
+function toggleStep(){
+showStep=!showStep
+calc()
 }
 
 function suggest(diff){
@@ -270,7 +330,8 @@ function suggest(diff){
 let list=menus
 .map(m=>({
 ...m,
-d:Math.abs(m.price-diff)
+price:Math.floor(m.price*1.1),
+d:Math.abs(Math.floor(m.price*1.1)-diff)
 }))
 .sort((a,b)=>a.d-b.d)
 .slice(0,3)
@@ -285,7 +346,7 @@ div.innerText=`${m.name} ¥${m.price}`
 
 div.onclick=()=>{
 addOrder()
-orders[orders.length-1].price=m.price
+orders[orders.length-1].price=Math.floor(m.price/1.1)
 calc()
 closeModal()
 }
@@ -294,11 +355,13 @@ box.appendChild(div)
 })
 
 document.getElementById("modal").style.display="block"
+
 }
 
 function closeModal(){
 document.getElementById("modal").style.display="none"
 }
+
 </script>
 
 </body>
