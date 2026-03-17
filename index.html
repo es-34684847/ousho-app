@@ -69,7 +69,7 @@ color:white;
 border:none;
 }
 
-/* ＋追加（コンパクト） */
+/* ＋追加 */
 .addBtn{
 width:100%;
 padding:8px;
@@ -115,9 +115,11 @@ font-size:20px;
 王将会計シミュレーター
 </div>
 
-<div class="container" id="orders"></div>
-
 <div class="container">
+
+<div id="orders"></div>
+
+<button class="addBtn" onclick="addOrder()">＋ メニューを追加</button>
 
 <div class="card">
 <div>クーポン</div>
@@ -160,6 +162,8 @@ const rows=text.trim().split(/\r?\n/)
 
 rows.slice(1).forEach(r=>{
 const c=r.split(",")
+if(c.length<3)return
+
 menus.push({
 genre:c[0],
 name:c[1],
@@ -194,28 +198,9 @@ div.innerHTML=`
 
 `
 
-const container=document.getElementById("orders")
-container.appendChild(div)
+document.getElementById("orders").appendChild(div)
 
 setup(orderCount)
-
-// ＋ボタン再配置
-renderAddButton()
-
-}
-
-function renderAddButton(){
-
-const old=document.getElementById("addBtn")
-if(old) old.remove()
-
-const btn=document.createElement("button")
-btn.id="addBtn"
-btn.className="addBtn"
-btn.innerText="＋ メニューを追加"
-btn.onclick=addOrder
-
-document.getElementById("orders").appendChild(btn)
 
 }
 
@@ -331,8 +316,8 @@ return {name:m.name,price:m.price,diff:Math.abs(m.price-diff)}
 .slice(0,3)
 
 alert(
-"おすすめ\\n"+
-list.map(l=>`${l.name} ¥${l.price}`).join("\\n")
+"おすすめ\n"+
+list.map(l=>`${l.name} ¥${l.price}`).join("\n")
 )
 
 }
