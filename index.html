@@ -47,8 +47,13 @@ margin-bottom:10px;
 font-size:14px;
 margin-bottom:6px;
 display:flex;
-justify-content:space-between;
 align-items:center;
+gap:8px; /* ← 横並びで詰める */
+}
+
+/* ジャンル横幅調整 */
+.genreSelect{
+flex:1;
 }
 
 select{
@@ -61,12 +66,13 @@ margin-top:6px;
 
 /* 追加ボタン */
 .addBtn{
+width:50%;
+margin:10px auto;
 text-align:center;
 font-size:16px;
 padding:12px;
-background:#eee;
+background:#ccc;
 border-radius:10px;
-margin:20px 0; /* ←余白追加 */
 }
 
 /* ボタン */
@@ -78,14 +84,14 @@ margin:4px;
 background:#eee;
 }
 
-/* 選択状態（青） */
+/* 選択状態 */
 .coupon button.active,
 .member button.active{
 background:#2f5fb3;
 color:white;
 }
 
-/* 刻み（1行） */
+/* 刻み */
 .stepBox{
 position:fixed;
 bottom:70px;
@@ -186,7 +192,6 @@ font-size:12px;
 
 <div class="container">
 
-<!-- ここに固定 -->
 <div class="addBtn" onclick="addOrder()">＋ メニュー追加</div>
 
 <div class="card coupon">
@@ -218,7 +223,6 @@ font-size:12px;
 </div>
 </div>
 
-<!-- モーダル -->
 <div id="modal">
 <div class="modalBg" onclick="closeModal()"></div>
 <div class="modalBox">
@@ -267,7 +271,7 @@ div.className="card"
 div.innerHTML=`
 <div class="title">
 <span>注文${i+1}</span>
-<select onchange="changeGenre(this,${i})" style="width:50%">
+<select class="genreSelect" onchange="changeGenre(this,${i})">
 <option value="">ジャンル</option>
 ${[...new Set(menus.map(m=>m.genre))].map(g=>`<option>${g}</option>`).join("")}
 </select>
@@ -359,12 +363,21 @@ div.className="modalItem"
 div.innerText=`${m.name} ¥${m.taxed}`
 
 div.onclick=()=>{
-if(emptyIndex!==-1){
-orders[emptyIndex].price=m.price
-}else{
+
+let indexToUse = emptyIndex
+
+if(indexToUse === -1){
 addOrder()
-orders[orders.length-1].price=m.price
+indexToUse = orders.length - 1
 }
+
+orders[indexToUse].price = m.price
+
+const select = document.getElementById("menu"+indexToUse)
+if(select){
+select.value = m.price
+}
+
 calc()
 closeModal()
 }
