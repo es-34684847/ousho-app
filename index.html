@@ -59,29 +59,33 @@ font-size:15px;
 margin-top:6px;
 }
 
+/* 追加ボタン */
 .addBtn{
 text-align:center;
 font-size:16px;
-padding:10px;
+padding:12px;
 background:#eee;
 border-radius:10px;
-margin-top:10px;
+margin:20px 0; /* ←余白追加 */
 }
 
+/* ボタン */
 button{
 padding:10px;
 border:none;
 border-radius:8px;
 margin:4px;
+background:#eee;
 }
 
+/* 選択状態（青） */
 .coupon button.active,
 .member button.active{
-background:#d32f2f;
+background:#2f5fb3;
 color:white;
 }
 
-/* 刻み */
+/* 刻み（1行） */
 .stepBox{
 position:fixed;
 bottom:70px;
@@ -95,7 +99,7 @@ justify-content:center;
 width:100%;
 max-width:420px;
 background:#f4f4f4;
-padding:6px;
+padding:8px;
 font-size:14px;
 text-align:center;
 }
@@ -182,6 +186,7 @@ font-size:12px;
 
 <div class="container">
 
+<!-- ここに固定 -->
 <div class="addBtn" onclick="addOrder()">＋ メニュー追加</div>
 
 <div class="card coupon">
@@ -323,15 +328,10 @@ return
 }
 
 let next=Math.ceil(total/500)*500
-let text=""
+let diff=next-total
 
-for(let i=0;i<2;i++){
-let t=next+(i*500)
-let diff=t-total
-text+=`${t}円まであと ¥${diff} <button onclick="suggest(${diff})">＋</button><br>`
-}
-
-document.getElementById("stepBox").innerHTML=text
+document.getElementById("stepBox").innerHTML=
+`${next}円まであと ¥${diff} <button onclick="suggest(${diff})">＋</button>`
 }
 
 function toggleStep(){
@@ -359,14 +359,12 @@ div.className="modalItem"
 div.innerText=`${m.name} ¥${m.taxed}`
 
 div.onclick=()=>{
-
 if(emptyIndex!==-1){
 orders[emptyIndex].price=m.price
 }else{
 addOrder()
 orders[orders.length-1].price=m.price
 }
-
 calc()
 closeModal()
 }
