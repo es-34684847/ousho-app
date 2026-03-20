@@ -4,13 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>餃子の王将 会計シミュレーター</title>
+<title>餃子の王将 会計シミュレーター｜クーポン・割引込みで合計を自動計算</title>
+
+<meta name="description" content="餃子の王将の会計を自動計算できる無料シミュレーター。クーポン・餃子倶楽部割引に対応し、注文前に合計金額を確認できます。">
+
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://es-34684847.github.io/ousho-app/">
+
+<!-- OGP -->
+<meta property="og:title" content="餃子の王将 会計シミュレーター">
+<meta property="og:description" content="クーポン・割引対応の無料計算ツール">
+<meta property="og:type" content="website">
+<meta property="og:image" content="icon.png">
 
 <link rel="icon" href="icon.ico">
 <link rel="apple-touch-icon" href="icon.png">
 
-<style>
+<!-- 構造化データ -->
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebApplication",
+ "name": "餃子の王将 会計シミュレーター",
+ "description": "餃子の王将の会計をクーポンや割引込みで計算できるツール",
+ "applicationCategory": "FinanceApplication",
+ "operatingSystem": "All",
+ "inLanguage": "ja"
+}
+</script>
 
+<style>
 body{
 font-family:sans-serif;
 background:#d8c9bd;
@@ -19,12 +42,10 @@ padding-bottom:160px;
 display:flex;
 justify-content:center;
 }
-
 .wrapper{
 width:100%;
 max-width:420px;
 }
-
 header{
 background:#d32f2f;
 color:white;
@@ -33,29 +54,24 @@ padding:14px;
 font-size:20px;
 font-weight:bold;
 }
-
 .container{
 padding:0 10px 10px;
 }
-
 .card{
 background:white;
 border-radius:14px;
 padding:12px;
 margin-bottom:8px;
 }
-
 .title{
 font-size:14px;
 display:flex;
 gap:8px;
 align-items:center;
 }
-
 .genreSelect{
 flex:1;
 }
-
 select{
 width:100%;
 padding:12px;
@@ -63,8 +79,6 @@ border-radius:8px;
 font-size:15px;
 margin-top:6px;
 }
-
-/* 追加ボタン */
 .addBtn{
 width:50%;
 margin:0 auto 8px;
@@ -80,8 +94,6 @@ cursor:pointer;
 transform:translateY(2px);
 box-shadow:0 1px 0 #9e9e9e;
 }
-
-/* ボタン */
 button{
 padding:10px;
 border:none;
@@ -89,15 +101,11 @@ border-radius:8px;
 margin:4px;
 background:#eee;
 }
-
-/* 選択色 */
 .coupon button.active,
 .member button.active{
 background:#2f5fb3;
 color:white;
 }
-
-/* 刻み */
 .stepBox{
 position:fixed;
 bottom:90px;
@@ -106,7 +114,6 @@ right:0;
 display:flex;
 justify-content:center;
 }
-
 .stepInner{
 width:100%;
 max-width:420px;
@@ -114,8 +121,6 @@ background:#f4f4f4;
 padding:8px;
 text-align:center;
 }
-
-/* 合計 */
 .totalBox{
 position:fixed;
 bottom:0;
@@ -124,7 +129,6 @@ right:0;
 display:flex;
 justify-content:center;
 }
-
 .totalInner{
 width:100%;
 max-width:420px;
@@ -133,26 +137,21 @@ color:white;
 text-align:center;
 padding:10px;
 }
-
 .total{
 font-size:24px;
 font-weight:bold;
 }
-
-/* モーダル */
 #modal{
 display:none;
 position:fixed;
 top:0;left:0;right:0;bottom:0;
 z-index:999;
 }
-
 .modalBg{
 position:absolute;
 width:100%;height:100%;
 background:rgba(0,0,0,0.6);
 }
-
 .modalBox{
 position:absolute;
 top:50%;left:50%;
@@ -164,7 +163,6 @@ border-radius:16px;
 padding:16px;
 text-align:center;
 }
-
 .modalItem{
 background:white;
 color:black;
@@ -172,21 +170,22 @@ padding:10px;
 margin:6px 0;
 border-radius:10px;
 }
-
-/* 詳細 */
 .detail{
 font-size:14px;
 line-height:1.6;
 }
-
 .detail span{
 float:right;
 }
-
 </style>
 </head>
 
 <body>
+
+<!-- 見えないh1（SEO用） -->
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;">
+餃子の王将の会計をクーポン・割引込みで計算できるシミュレーター
+</h1>
 
 <div class="wrapper">
 
@@ -230,6 +229,11 @@ float:right;
 <div class="totalInner">
 <div class="total" id="total">¥0（税込）</div>
 </div>
+</div>
+
+<!-- SEOテキスト（極小・UI影響ほぼなし） -->
+<div style="font-size:11px; color:#777; padding:6px; text-align:center;">
+餃子の王将の会計を自動計算。クーポン・割引対応。
 </div>
 
 <div id="modal">
@@ -334,7 +338,6 @@ let discountAmount=Math.floor(afterCoupon*(discount/100))
 
 let total=Math.floor(afterCoupon-discountAmount)
 
-// 表示
 document.getElementById("total").innerText="¥"+total+"（税込）"
 document.getElementById("subTotal").innerText=taxed+"円"
 document.getElementById("couponVal").innerText="-"+coupon+"円"
@@ -375,7 +378,6 @@ addOrder()
 indexToUse=orders.length-1
 }
 
-// ★ 修正済み（ここが重要）
 orders[indexToUse]={price:m.price,genre:m.genre}
 
 const genreSelect=document.querySelectorAll(".genreSelect")[indexToUse]
