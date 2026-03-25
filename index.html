@@ -4,36 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>餃子の王将 会計シミュレーター｜クーポン・割引込みで合計を自動計算</title>
+<title>餃子の王将 会計シミュレーター</title>
 
-<meta name="description" content="餃子の王将の会計を自動計算できる無料シミュレーター。クーポン・餃子倶楽部割引に対応し、注文前に合計金額を確認できます。">
-
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://es-34684847.github.io/ousho-app/">
-
-<!-- OGP -->
-<meta property="og:title" content="餃子の王将 会計シミュレーター">
-<meta property="og:description" content="クーポン・割引対応の無料計算ツール">
-<meta property="og:type" content="website">
-<meta property="og:image" content="icon.png">
-
-<link rel="icon" href="icon.ico">
+<link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 
-<!-- 構造化データ -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "WebApplication",
- "name": "餃子の王将 会計シミュレーター",
- "description": "餃子の王将の会計をクーポンや割引込みで計算できるツール",
- "applicationCategory": "FinanceApplication",
- "operatingSystem": "All",
- "inLanguage": "ja"
-}
-</script>
-
 <style>
+
 body{
 font-family:sans-serif;
 background:#d8c9bd;
@@ -42,36 +19,44 @@ padding-bottom:160px;
 display:flex;
 justify-content:center;
 }
+
 .wrapper{
 width:100%;
 max-width:420px;
 }
+
 header{
-background:#d32f2f;
+background:#b00020;
 color:white;
 text-align:center;
-padding:14px;
-font-size:20px;
+padding:16px;
+font-size:22px;
 font-weight:bold;
 }
+
 .container{
 padding:0 10px 10px;
 }
+
 .card{
 background:white;
 border-radius:14px;
 padding:12px;
 margin-bottom:8px;
+border:2px solid #ccc;
 }
+
 .title{
 font-size:14px;
 display:flex;
 gap:8px;
 align-items:center;
 }
+
 .genreSelect{
 flex:1;
 }
+
 select{
 width:100%;
 padding:12px;
@@ -79,33 +64,34 @@ border-radius:8px;
 font-size:15px;
 margin-top:6px;
 }
+
 .addBtn{
 width:50%;
 margin:0 auto 8px;
 text-align:center;
 font-size:16px;
 padding:12px;
-background:#bdbdbd;
+background:#ffcc00;
 border-radius:10px;
-box-shadow:0 3px 0 #9e9e9e;
+font-weight:bold;
 cursor:pointer;
 }
-.addBtn:active{
-transform:translateY(2px);
-box-shadow:0 1px 0 #9e9e9e;
-}
+
 button{
 padding:10px;
 border:none;
 border-radius:8px;
 margin:4px;
 background:#eee;
+border:2px solid #999;
 }
-.coupon button.active,
-.member button.active{
-background:#2f5fb3;
+
+button.active{
+background:#003f88;
 color:white;
+border-color:#003f88;
 }
+
 .stepBox{
 position:fixed;
 bottom:90px;
@@ -114,6 +100,7 @@ right:0;
 display:flex;
 justify-content:center;
 }
+
 .stepInner{
 width:100%;
 max-width:420px;
@@ -121,6 +108,7 @@ background:#f4f4f4;
 padding:8px;
 text-align:center;
 }
+
 .totalBox{
 position:fixed;
 bottom:0;
@@ -129,29 +117,34 @@ right:0;
 display:flex;
 justify-content:center;
 }
+
 .totalInner{
 width:100%;
 max-width:420px;
-background:#d32f2f;
+background:#b00020;
 color:white;
 text-align:center;
 padding:10px;
 }
+
 .total{
-font-size:24px;
+font-size:32px;
 font-weight:bold;
 }
+
 #modal{
 display:none;
 position:fixed;
 top:0;left:0;right:0;bottom:0;
 z-index:999;
 }
+
 .modalBg{
 position:absolute;
 width:100%;height:100%;
 background:rgba(0,0,0,0.6);
 }
+
 .modalBox{
 position:absolute;
 top:50%;left:50%;
@@ -163,6 +156,7 @@ border-radius:16px;
 padding:16px;
 text-align:center;
 }
+
 .modalItem{
 background:white;
 color:black;
@@ -170,22 +164,20 @@ padding:10px;
 margin:6px 0;
 border-radius:10px;
 }
+
 .detail{
 font-size:14px;
 line-height:1.6;
 }
+
 .detail span{
 float:right;
 }
+
 </style>
 </head>
 
 <body>
-
-<!-- 見えないh1（SEO用） -->
-<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;">
-餃子の王将の会計をクーポン・割引込みで計算できるシミュレーター
-</h1>
 
 <div class="wrapper">
 
@@ -215,7 +207,7 @@ float:right;
 
 <div class="card detail">
 <div>小計 <span id="subTotal">0円</span></div>
-<div>クーポン <span id="couponVal">0円</span></div>
+<div>クーポン <span id="couponVal">なし</span></div>
 <div>会員割引 <span id="discountVal">0円</span></div>
 </div>
 
@@ -227,15 +219,7 @@ float:right;
 
 <div class="totalBox">
 <div class="totalInner">
-<div class="total" id="total">¥0（税込）</div>
-</div>
-</div>
-
-<!-- SEOテキスト（極小・UI影響ほぼなし） -->
-
-<!-- ←ここに入れる -->
-<div style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;">
-テキスト
+<div id="total">¥0（税込）</div>
 </div>
 </div>
 
@@ -269,9 +253,7 @@ init()
 })
 
 function init(){
-addOrder()
-addOrder()
-addOrder()
+addOrder() // 初期1個だけ
 }
 
 function addOrder(){
@@ -290,6 +272,7 @@ div.innerHTML=`
 <option value="">ジャンル</option>
 ${[...new Set(menus.map(m=>m.genre))].map(g=>`<option>${g}</option>`).join("")}
 </select>
+<button onclick="removeOrder(${i})">削除</button>
 </div>
 
 <select id="menu${i}" onchange="selectMenu(this,${i})">
@@ -298,6 +281,15 @@ ${[...new Set(menus.map(m=>m.genre))].map(g=>`<option>${g}</option>`).join("")}
 `
 
 document.getElementById("orders").appendChild(div)
+}
+
+function removeOrder(i){
+orders.splice(i,1)
+document.getElementById("orders").innerHTML=""
+const temp=[...orders]
+orders=[]
+temp.forEach(()=>addOrder())
+calc()
 }
 
 function changeGenre(el,i){
@@ -341,9 +333,13 @@ let discountAmount=Math.floor(afterCoupon*(discount/100))
 
 let total=Math.floor(afterCoupon-discountAmount)
 
-document.getElementById("total").innerText="¥"+total+"（税込）"
+// 合計表示強化
+document.getElementById("total").innerHTML=
+`<div>お会計</div><div style="font-size:34px">¥${total}</div><div>税込</div>`
+
 document.getElementById("subTotal").innerText=taxed+"円"
-document.getElementById("couponVal").innerText="-"+coupon+"円"
+document.getElementById("couponVal").innerText=
+coupon ? `-¥${coupon}` : "なし"
 document.getElementById("discountVal").innerText="-"+discountAmount+"円"
 
 let next=Math.ceil(total/500)*500
@@ -359,7 +355,7 @@ let emptyIndex=orders.findIndex(o=>o.price===0)
 
 let list=menus.map(m=>{
 let taxed=Math.floor(m.price*1.1)
-return {...m,taxed,d:Math.abs(taxed-diff)}
+return {...m,taxed,d: taxed >= diff ? taxed-diff : 10000}
 })
 .sort((a,b)=>a.d-b.d)
 .slice(0,3)
