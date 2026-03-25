@@ -8,9 +8,10 @@
 
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b00020">
 
 <style>
-
 body{
 font-family:sans-serif;
 background:#d8c9bd;
@@ -94,7 +95,7 @@ border-color:#003f88;
 
 .stepBox{
 position:fixed;
-bottom:90px;
+bottom:100px;
 left:0;
 right:0;
 display:flex;
@@ -105,8 +106,10 @@ justify-content:center;
 width:100%;
 max-width:420px;
 background:#f4f4f4;
-padding:8px;
+padding:12px;
 text-align:center;
+border-radius:12px;
+margin-bottom:10px;
 }
 
 .totalBox{
@@ -123,13 +126,11 @@ width:100%;
 max-width:420px;
 background:#b00020;
 color:white;
-text-align:center;
-padding:10px;
-}
-
-.total{
-font-size:32px;
-font-weight:bold;
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+padding:12px;
 }
 
 #modal{
@@ -173,7 +174,6 @@ line-height:1.6;
 .detail span{
 float:right;
 }
-
 </style>
 </head>
 
@@ -218,9 +218,7 @@ float:right;
 <div class="stepBox"><div class="stepInner" id="stepBox"></div></div>
 
 <div class="totalBox">
-<div class="totalInner">
-<div id="total">¥0（税込）</div>
-</div>
+<div class="totalInner" id="total"></div>
 </div>
 
 <div id="modal">
@@ -233,6 +231,9 @@ float:right;
 </div>
 
 <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
 
 let menus=[]
 let orders=[]
@@ -242,7 +243,7 @@ let discount=0
 fetch("menu.csv")
 .then(res=>res.text())
 .then(text=>{
-const lines=text.split("\n").slice(1)
+const lines=text.split("\\n").slice(1)
 
 menus=lines.map(l=>{
 const [genre,name,price]=l.split(",")
@@ -253,13 +254,13 @@ init()
 })
 
 function init(){
-addOrder() // 初期1個だけ
+addOrder()
+calc()
 }
 
 function addOrder(){
 
 orders.push({price:0})
-
 const i=orders.length-1
 
 const div=document.createElement("div")
@@ -284,23 +285,27 @@ document.getElementById("orders").appendChild(div)
 }
 
 function removeOrder(i){
+orders.splice(i,1)
 
-  // データ削除
-  orders.splice(i,1)
+const cards=document.querySelectorAll("#orders .card")
+if(cards[i]) cards[i].remove()
 
-  // DOMから該当カード削除
-  const cards = document.querySelectorAll("#orders .card")
-  if(cards[i]){
-    cards[i].remove()
-  }
+document.querySelectorAll("#orders .card .title span")
+.forEach((el,idx)=>el.innerText=`注文${idx+1}`)
 
-  // 番号振り直し（注文1,2,3…）
-  document.querySelectorAll("#orders .card .title span")
-  .forEach((el,idx)=>{
-    el.innerText = `注文${idx+1}`
-  })
+rebindEvents()
+calc()
+}
 
-  calc()
+function rebindEvents(){
+document.querySelectorAll("#orders .card").forEach((card,i)=>{
+const genre=card.querySelector(".genreSelect")
+const menu=card.querySelector("select[id^='menu']")
+
+genre.setAttribute("onchange",`changeGenre(this,${i})`)
+menu.setAttribute("onchange",`selectMenu(this,${i})`)
+menu.id="menu"+i
+})
 }
 
 function changeGenre(el,i){
@@ -341,16 +346,13 @@ let afterCoupon=taxed-coupon
 if(afterCoupon<0)afterCoupon=0
 
 let discountAmount=Math.floor(afterCoupon*(discount/100))
-
 let total=Math.floor(afterCoupon-discountAmount)
 
-// 合計表示強化
 document.getElementById("total").innerHTML=
-`<div>お会計</div><div style="font-size:34px">¥${total}</div><div>税込</div>`
+`<span>お会計</span><span style="font-size:34px">¥${total}</span><span>税込</span>`
 
 document.getElementById("subTotal").innerText=taxed+"円"
-document.getElementById("couponVal").innerText=
-coupon ? `-¥${coupon}` : "なし"
+document.getElementById("couponVal").innerText=coupon?`-¥${coupon}`:"なし"
 document.getElementById("discountVal").innerText="-"+discountAmount+"円"
 
 let next=Math.ceil(total/500)*500
@@ -366,7 +368,7 @@ let emptyIndex=orders.findIndex(o=>o.price===0)
 
 let list=menus.map(m=>{
 let taxed=Math.floor(m.price*1.1)
-return {...m,taxed,d: taxed >= diff ? taxed-diff : 10000}
+return {...m,taxed,d: taxed>=diff?taxed-diff:10000}
 })
 .sort((a,b)=>a.d-b.d)
 .slice(0,3)
@@ -396,10 +398,7 @@ const menuSelect=document.getElementById("menu"+indexToUse)
 if(genreSelect && menuSelect){
 genreSelect.value=m.genre
 changeGenre(genreSelect,indexToUse)
-
-setTimeout(()=>{
-menuSelect.value=m.price
-},0)
+setTimeout(()=>{menuSelect.value=m.price},0)
 }
 
 calc()
@@ -415,7 +414,6 @@ document.getElementById("modal").style.display="block"
 function closeModal(){
 document.getElementById("modal").style.display="none"
 }
-
 </script>
 
 </body>
