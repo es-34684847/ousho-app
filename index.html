@@ -284,12 +284,23 @@ document.getElementById("orders").appendChild(div)
 }
 
 function removeOrder(i){
-orders.splice(i,1)
-document.getElementById("orders").innerHTML=""
-const temp=[...orders]
-orders=[]
-temp.forEach(()=>addOrder())
-calc()
+
+  // データ削除
+  orders.splice(i,1)
+
+  // DOMから該当カード削除
+  const cards = document.querySelectorAll("#orders .card")
+  if(cards[i]){
+    cards[i].remove()
+  }
+
+  // 番号振り直し（注文1,2,3…）
+  document.querySelectorAll("#orders .card .title span")
+  .forEach((el,idx)=>{
+    el.innerText = `注文${idx+1}`
+  })
+
+  calc()
 }
 
 function changeGenre(el,i){
