@@ -12,59 +12,21 @@
 <meta name="theme-color" content="#b00020">
 
 <style>
-body{
-font-family:sans-serif;
-background:#d8c9bd;
-margin:0;
-padding-bottom:160px;
-display:flex;
-justify-content:center;
-}
+body{font-family:sans-serif;background:#d8c9bd;margin:0;padding-bottom:160px;display:flex;justify-content:center;}
 .wrapper{width:100%;max-width:420px;}
-header{
-background:#b00020;color:white;text-align:center;
-padding:16px;font-size:22px;font-weight:bold;
-}
+header{background:#b00020;color:white;text-align:center;padding:16px;font-size:22px;font-weight:bold;}
 .container{padding:0 10px 10px;}
-.card{
-background:white;border-radius:14px;padding:12px;
-margin-bottom:12px;border:2px solid #ccc;
-}
+.card{background:white;border-radius:14px;padding:12px;margin-bottom:12px;border:2px solid #ccc;}
 .title{font-size:14px;display:flex;gap:8px;align-items:center;}
 .genreSelect{flex:1;}
-select{
-width:100%;padding:12px;border-radius:8px;
-font-size:15px;margin-top:6px;
-}
-.addBtn{
-width:50%;margin:0 auto 8px;text-align:center;
-font-size:16px;padding:12px;background:#ffcc00;
-border-radius:10px;font-weight:bold;cursor:pointer;
-}
-button{
-padding:10px;border:none;border-radius:8px;
-margin:4px;background:#eee;border:2px solid #999;
-}
+select{width:100%;padding:12px;border-radius:8px;font-size:15px;margin-top:6px;}
+.addBtn{width:50%;margin:0 auto 8px;text-align:center;font-size:16px;padding:12px;background:#ffcc00;border-radius:10px;font-weight:bold;cursor:pointer;}
+button{padding:10px;border:none;border-radius:8px;margin:4px;background:#eee;border:2px solid #999;}
 button.active{background:#003f88;color:white;border-color:#003f88;}
-
-.stepBox{
-position:fixed;bottom:100px;left:0;right:0;
-display:flex;justify-content:center;
-}
-.stepInner{
-width:100%;max-width:420px;background:#f4f4f4;
-padding:12px;text-align:center;border-radius:12px;
-}
-
-.totalBox{
-position:fixed;bottom:0;left:0;right:0;
-display:flex;justify-content:center;
-}
-.totalInner{
-width:100%;max-width:420px;background:#b00020;color:white;
-display:flex;justify-content:center;align-items:center;
-gap:10px;padding:12px;
-}
+.stepBox{position:fixed;bottom:100px;left:0;right:0;display:flex;justify-content:center;}
+.stepInner{width:100%;max-width:420px;background:#f4f4f4;padding:12px;text-align:center;border-radius:12px;}
+.totalBox{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;}
+.totalInner{width:100%;max-width:420px;background:#b00020;color:white;display:flex;justify-content:center;align-items:center;gap:10px;padding:12px;}
 </style>
 </head>
 
@@ -102,19 +64,13 @@ gap:10px;padding:12px;
 <div>会員割引 <span id="discountVal">0円</span></div>
 </div>
 
-<!-- 🔥 広告ここ（container内にそのまま） -->
+<!-- 広告 -->
 <div class="card">
 <div style="font-size:10px;color:#888;">広告</div>
-
-<a href="https://hb.afl.rakuten.co.jp/ichiba/52149eff.db4cb4a5.52149f00.6690fb04/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ff112127-higasimatuyama%2Fhgm00474%2F&link_type=pict&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0Iiwic2l6ZSI6IjEyOHgxMjgiLCJuYW0iOjEsIm5hbXAiOiJyaWdodCIsImNvbSI6MSwiY29tcCI6ImRvd24iLCJwcmljZSI6MCwiYm9yIjoxLCJjb2wiOjEsImJidG4iOjEsInByb2QiOjAsImFtcCI6ZmFsc2V9"
-target="_blank" rel="nofollow sponsored noopener">
-
-<img src="https://thumbnail.image.rakuten.co.jp/@0_mall/f112127-higasimatuyama/cabinet/0152/r_p0152002_00.jpg"
-style="width:100%; border-radius:10px;">
-
+<a href="https://hb.afl.rakuten.co.jp/ichiba/52149eff.db4cb4a5.52149f00.6690fb04/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ff112127-higasimatuyama%2Fhgm00474%2F&link_type=pict&ut=..." target="_blank" rel="nofollow sponsored noopener">
+<img src="https://thumbnail.image.rakuten.co.jp/@0_mall/f112127-higasimatuyama/cabinet/0152/r_p0152002_00.jpg" style="width:100%; border-radius:10px;">
 </a>
 </div>
-<!-- 🔥 ここまで -->
 
 </div>
 
@@ -136,7 +92,7 @@ let discount=0
 fetch("menu.csv")
 .then(res=>res.text())
 .then(text=>{
-const lines = text.split(/\r?\n/).slice(1)
+const lines=text.split(/\r?\n/).slice(1)
 
 menus=lines.map(l=>{
 const [genre,name,price]=l.split(",")
@@ -177,14 +133,27 @@ document.getElementById("orders").appendChild(div)
 }
 
 function removeOrder(i){
+
 orders.splice(i,1)
-document.getElementById("orders").innerHTML=""
-const temp=[...orders]
-orders=[]
-temp.forEach(o=>{
-addOrder()
-orders[orders.length-1].price=o.price
+
+// DOM削除
+const cards=document.querySelectorAll("#orders .card")
+if(cards[i]) cards[i].remove()
+
+// 番号振り直し
+document.querySelectorAll("#orders .card .title span")
+.forEach((el,idx)=>el.innerText=`注文${idx+1}`)
+
+// イベント再バインド
+document.querySelectorAll("#orders .card").forEach((card,idx)=>{
+const genre=card.querySelector(".genreSelect")
+const menu=card.querySelector("select[id^='menu']")
+
+genre.setAttribute("onchange",`changeGenre(this,${idx})`)
+menu.setAttribute("onchange",`selectMenu(this,${idx})`)
+menu.id="menu"+idx
 })
+
 calc()
 }
 
@@ -217,7 +186,6 @@ calc()
 }
 
 function calc(){
-
 let base=orders.reduce((a,b)=>a+b.price,0)
 let taxed=Math.floor(base*1.1)
 
