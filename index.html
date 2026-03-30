@@ -268,22 +268,36 @@ let coupon=0
 let discount=0
 
 fetch("menu.csv")
-.then(res=>res.text())
+.then(res=>{
+  if(!res.ok){
+    throw new Error("CSV読み込み失敗: "+res.status)
+  }
+  return res.text()
+})
 .then(text=>{
-const lines=text.split("\\n").slice(1)
 
-menus=lines.map(l=>{
-const [genre,name,price]=l.split(",")
-return {genre,name,price:Number(price)}
+  const lines = text.trim().split(/\r?\n/).slice(1)
+
+  menus = lines
+    .map(l=>l.trim())
+    .filter(l=>l) // 空行除去
+    .map(l=>{
+      const [genre,name,price] = l.split(",")
+      return {
+        genre: genre?.trim(),
+        name: name?.trim(),
+        price: Number(price)
+      }
+    })
+
+  console.log("menus", menus)
+
+  init()
 })
-
-init()
+.catch(err=>{
+  console.error(err)
+  alert("CSV読み込み失敗してる")
 })
-
-function init(){
-addOrder()
-calc()
-}
 
 function addOrder(){
 
