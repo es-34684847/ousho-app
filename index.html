@@ -26,13 +26,26 @@ width:100%;
 max-width:420px;
 }
 
+/* ★ヘッダーのみ変更 */
 header{
-background:#b00020;
+background:linear-gradient(90deg,#b00020 0%, #d32f2f 100%);
 color:white;
 text-align:center;
-padding:16px;
+padding:18px 12px;
 font-size:22px;
 font-weight:bold;
+letter-spacing:1px;
+border-bottom:4px solid #ffcc00;
+position:relative;
+}
+header::after{
+content:"GYOZA OHSHO";
+position:absolute;
+right:10px;
+bottom:4px;
+font-size:10px;
+opacity:0.6;
+letter-spacing:1px;
 }
 
 .container{
@@ -93,7 +106,7 @@ color:white;
 border-color:#003f88;
 }
 
-/* ▼ 追加：刻みUI */
+/* 刻み */
 .stepBox{
 position:fixed;
 bottom:100px;
@@ -113,7 +126,7 @@ border-radius:12px;
 margin-bottom:10px;
 }
 
-/* ▼ 合計 */
+/* 合計 */
 .totalBox{
 position:fixed;
 bottom:0;
@@ -135,7 +148,7 @@ gap:10px;
 padding:12px;
 }
 
-/* ▼ モーダル */
+/* モーダル */
 #modal{
 display:none;
 position:fixed;
@@ -214,40 +227,16 @@ float:right;
 <div>会員割引 <span id="discountVal">0円</span></div>
 </div>
 
-<!-- 広告 -->
-<div class="card">
-
-  <div style="font-size:10px;color:#888;">広告</div>
-
-  <div style="display:flex; gap:8px; margin-top:6px;">
-
-    <a href="https://hb.afl.rakuten.co.jp/ichiba/52149eff.db4cb4a5.52149f00.6690fb04/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ff112127-higasimatuyama%2Fhgm00474%2F&link_type=pict&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0Iiwic2l6ZSI6IjEyOHgxMjgiLCJuYW0iOjEsIm5hbXAiOiJyaWdodCIsImNvbSI6MSwiY29tcCI6ImRvd24iLCJwcmljZSI6MCwiYm9yIjoxLCJjb2wiOjEsImJidG4iOjEsInByb2QiOjAsImFtcCI6ZmFsc2V9" style="flex:1;" target="_blank" rel="nofollow sponsored noopener">
-      <img src="https://hbb.afl.rakuten.co.jp/hgb/52149eff.db4cb4a5.52149f00.6690fb04/?me_id=1407619&item_id=10000505&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ff112127-higasimatuyama%2Fcabinet%2F0152%2Fr_p0152002_00.jpg%3F_ex%3D128x128&s=128x128&t=pict1"
-      style="width:100%;　height:100px;　object-fit:contain;　background:#fff;　border-radius:10px;">
-    </a>
-
-    <a href="https://hb.afl.rakuten.co.jp/ichiba/52149eff.db4cb4a5.52149f00.6690fb04/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ff112127-higasimatuyama%2Fhgm00477%2F&link_type=pict&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0Iiwic2l6ZSI6IjEyOHgxMjgiLCJuYW0iOjEsIm5hbXAiOiJyaWdodCIsImNvbSI6MSwiY29tcCI6ImRvd24iLCJwcmljZSI6MCwiYm9yIjoxLCJjb2wiOjEsImJidG4iOjEsInByb2QiOjAsImFtcCI6ZmFsc2V9" style="flex:1;" target="_blank" rel="nofollow sponsored noopener">
-      <img src="https://hbb.afl.rakuten.co.jp/hgb/52149eff.db4cb4a5.52149f00.6690fb04/?me_id=1407619&item_id=10000509&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ff112127-higasimatuyama%2Fcabinet%2F11153488%2Fr_hgm00477.jpg%3F_ex%3D128x128&s=128x128&t=pict"
-      style="width:100%;　height:100px;　object-fit:contain;　background:#fff;　border-radius:10px;">
-    </a>
-
-  </div>
-
 </div>
 
 </div>
 
-<!-- ▼ 刻み -->
-<div class="stepBox">
-<div class="stepInner" id="stepBox"></div>
-</div>
+<div class="stepBox"><div class="stepInner" id="stepBox"></div></div>
 
-<!-- ▼ 合計 -->
 <div class="totalBox">
 <div class="totalInner" id="total"></div>
 </div>
 
-<!-- ▼ モーダル -->
 <div id="modal">
 <div class="modalBg" onclick="closeModal()"></div>
 <div class="modalBox">
@@ -266,43 +255,35 @@ let menus=[]
 let orders=[]
 let coupon=0
 let discount=0
+let initialized=false
 
 fetch("menu.csv")
-.then(res=>{
-  if(!res.ok){
-    throw new Error("CSV読み込み失敗: "+res.status)
-  }
-  return res.text()
-})
+.then(res=>res.text())
 .then(text=>{
+const lines = text.trim().split(/\r?\n/).slice(1)
 
-  // 安定版パース
-  const lines = text
-    .replace(/^\uFEFF/, '') // BOM除去
-    .trim()
-    .split(/\r?\n/)
-
-  // ヘッダ除外 + 空行除去
-  menus = lines.slice(1)
-    .map(l=>l.trim())
-    .filter(l=>l.length > 0)
-    .map(l=>{
-      const cols = l.split(",")
-      return {
-        genre: cols[0]?.trim(),
-        name: cols[1]?.trim(),
-        price: Number(cols[2])
-      }
-    })
-
-  console.log("menus:", menus)
-
-  init()
+menus=lines.map(l=>{
+const [genre,name,price]=l.split(",")
+return {genre,name,price:Number(price)}
 })
-.catch(err=>{
-  console.error(err)
-  alert("CSV読み込み失敗")
+
+init()
 })
+.catch(()=>{
+// CSV読めなくてもUIだけは出す
+init()
+})
+
+function init(){
+if(initialized) return
+initialized=true
+
+if(orders.length===0){
+addOrder()
+}
+
+calc()
+}
 
 function addOrder(){
 
@@ -401,7 +382,6 @@ document.getElementById("subTotal").innerText=taxed+"円"
 document.getElementById("couponVal").innerText=coupon?`-¥${coupon}`:"なし"
 document.getElementById("discountVal").innerText="-"+discountAmount+"円"
 
-/* ▼ 刻みロジック */
 let next=Math.ceil(total/500)*500
 let diff=next-total
 
@@ -409,7 +389,6 @@ document.getElementById("stepBox").innerHTML=
 `${next}円まであと ¥${diff} <button onclick="suggest(${diff})">＋</button>`
 }
 
-/* ▼ おすすめ */
 function suggest(diff){
 
 let emptyIndex=orders.findIndex(o=>o.price===0)
